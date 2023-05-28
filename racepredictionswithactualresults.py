@@ -125,21 +125,19 @@ assert not X.isnull().values.any(), "There are still NaNs in the input data."
 assert np.isfinite(X.to_numpy()).all(), "There are still infinities in the input data."
 
 # Normalize target variable using StandardScaler
-#scaler = StandardScaler()
-#y = scaler.fit_transform(y.values.reshape(-1, 1))
+scaler = StandardScaler()
+X = scaler.fit_transform(X)
+y = scaler.fit_transform(y.values.reshape(-1, 1))
 
-# Normalize target variable using RobustScaler
-#scaler = RobustScaler()
-#y = scaler.fit_transform(y.values.reshape(-1, 1))
 
 # Normalize target variable using MinMaxScaler
 #scaler = MinMaxScaler()
-
 #y = scaler.fit_transform(y.values.reshape(-1, 1))
+
 # Normalize input features and target variable using RobustScaler
-scaler = RobustScaler()
-X = scaler.fit_transform(X)
-y = scaler.fit_transform(y.values.reshape(-1, 1))
+#scaler = RobustScaler()
+#X = scaler.fit_transform(X)
+#y = scaler.fit_transform(y.values.reshape(-1, 1))
 
 
 # Split the data into training, validation, and testing sets
