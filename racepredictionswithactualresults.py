@@ -42,6 +42,9 @@ df.sort_values(['Jockey', 'Date'], inplace=True)
 # Calculate the average performance of the jockey in the past three races
 df['JockeyPerformance'] = df.groupby('Jockey')['ActualFinish'].transform(lambda x: x.rolling(30, min_periods=1).mean())
 
+# Add a new feature to denote if a horse was scratched
+df['Scratched'] = df['ActualFinish'].apply(lambda x: 1 if x == 0 else 0)
+
 #df.sort_values(['Trainer', 'Date'], inplace=True)
 
 # Calculate the average performance of the trainer in the past three races
@@ -88,14 +91,34 @@ numeric_cols = df.select_dtypes(include=['int', 'float']).columns
 numeric_cols = [col for col in numeric_cols if col not in ignore_columns]
 numeric_cols = [col for col in numeric_cols if col not in text_fields]
 
+# Add Scratched feature to numeric_cols
+#numeric_cols.append('Scratched')
+
 # print(numeric_cols)
 
-# Replace NaN or infinite values in numeric columns with mean values
-df[numeric_cols] = df[numeric_cols].replace([np.inf, -np.inf], np.nan).fillna(df[numeric_cols].mean())
+# Replace infinities with NaN
+df[numeric_cols] = df[numeric_cols].replace([np.inf, -np.inf], np.nan)
+
+# Calculate mean and check if all numeric_cols are included in the mean series
+mean_values = df[numeric_cols].mean()
+missing_cols = [col for col in numeric_cols if col not in mean_values.index]
+
+if missing_cols:
+    print(f"Mean calculation failed for the following columns: {missing_cols}")
+
+# If no missing columns, proceed to fill NaN with mean
+if not missing_cols:
+    df[numeric_cols] = df[numeric_cols].fillna(mean_values)
+else:
+    print("Please check the data in the above columns.")
+
+
+train_df = df[df['Scratched'] == 0]
 
 # Create input features (X) and target variable (y)
-X = df[numeric_cols]
-y = df['ActualFinish']
+X = train_df[numeric_cols]
+y = train_df['ActualFinish']
+
 
 # Check for any remaining NaNs or infinities
 assert not X.isnull().values.any(), "There are still NaNs in the input data."
@@ -110,8 +133,14 @@ assert np.isfinite(X.to_numpy()).all(), "There are still infinities in the input
 #y = scaler.fit_transform(y.values.reshape(-1, 1))
 
 # Normalize target variable using MinMaxScaler
-scaler = MinMaxScaler()
+#scaler = MinMaxScaler()
+
+#y = scaler.fit_transform(y.values.reshape(-1, 1))
+# Normalize input features and target variable using RobustScaler
+scaler = RobustScaler()
+X = scaler.fit_transform(X)
 y = scaler.fit_transform(y.values.reshape(-1, 1))
+
 
 # Split the data into training, validation, and testing sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
@@ -135,7 +164,7 @@ model.add(Dropout(0.2))
 model.add(Dense(1))  # added relu activation here
 
 # Train the model on training data and validate on validation data
-history = model.fit(X_train, y_train, validation_data=(X_val, y_val), epochs=11, batch_size=2048)
+history = model.fit(X_train, y_train, validation_data=(X_val, y_val), epochs=100, batch_size=2048)
 # model.fit(X, y, epochs=30, batch_size=2048)
 # Load new race data
 new_race = pd.read_csv('c:\\races\\race1testdata.csv', encoding='utf-8-sig', low_memory=False)
