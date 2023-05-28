@@ -1,4 +1,5 @@
 # GallopAI
+
 GallopAI uses machine learning to predict horse race outcomes based on historical data. It's a valuable tool for enthusiasts and researchers interested in data analytics, machine learning, or sports predictions.
 
 ## Prerequisites
@@ -18,6 +19,8 @@ The project uses two datasets which are CSV files:
 
 ## Usage
 To run the script, use the following command in the terminal:
-```bash
+bash
 python racepredictionswithactualresults.py
+
+GallopAI uses machine learning to predict horse race outcomes based on historical data. It's a valuable tool for enthusiasts and researchers interested in data analytics, machine learning, or sports predictions. Please note, it's intended for educational and research purposes only.
 
